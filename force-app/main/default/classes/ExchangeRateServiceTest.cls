@@ -6,6 +6,15 @@
  */
 @isTest
 private class ExchangeRateServiceTest {
+
+    /**
+     * @description Creates a standard user and assigns the 'ExchangeRate' permission set.
+     * This setup runs once before all test methods in the class.
+     */
+    @TestSetup
+    static void makeData() {
+        TestDataFactory.createUserWithPermissionSets(new List<String>{'ExchangeRate', 'Exchange_Rate_Access', 'Custom_Log_Read_Create'});
+    }
     
     /**
      * @description Tests the getLatestRates method with a successful response
@@ -17,14 +26,18 @@ private class ExchangeRateServiceTest {
         
         // Call the method to test
         Test.startTest();
-        ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates('USD');
+        User testUser = [SELECT Id FROM User WHERE Alias = 'testusr'];
+        System.runAs(testUser){
+            ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates('USD');
+            
+            // Verify the result
+            Assert.areNotEqual(null, wrapper, 'Wrapper should not be null');
+            Assert.areEqual('USD', wrapper.base_code, 'Base currency should be USD');
+            Assert.areEqual(9, wrapper.conversion_rates.size(), 'Should have 9 rates');
+            Assert.areEqual(0.9488, wrapper.conversion_rates.get('EUR'), 'EUR rate should match');
+        }
         Test.stopTest();
         
-        // Verify the result
-        Assert.areNotEqual(null, wrapper, 'Wrapper should not be null');
-        Assert.areEqual('USD', wrapper.base_code, 'Base currency should be USD');
-        Assert.areEqual(9, wrapper.conversion_rates.size(), 'Should have 9 rates');
-        Assert.areEqual(0.9488, wrapper.conversion_rates.get('EUR'), 'EUR rate should match');
     }
     
     /**
@@ -37,11 +50,14 @@ private class ExchangeRateServiceTest {
         
         // Call the method to test and expect an exception
         Test.startTest();
-        try {
-            ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates('USD');
-            Assert.fail('Should have thrown an exception');
-        } catch (Exception e) {
-            Assert.isTrue(e.getMessage().contains('Error'), 'Exception message should mention error');
+        User testUser = [SELECT Id FROM User WHERE Alias = 'testusr'];
+        System.runAs(testUser){
+            try {
+                ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates('USD');
+                Assert.fail('Should have thrown an exception');
+            } catch (Exception e) {
+                Assert.isTrue(e.getMessage().contains('Error'), 'Exception message should mention error');
+            }
         }
         Test.stopTest();
     }
@@ -65,25 +81,29 @@ private class ExchangeRateServiceTest {
         
         // Process the rates
         Test.startTest();
-        List<Exchange_Rate__c> rates = ExchangeRateService.processRates(wrapper);
-        Test.stopTest();
-        
-        // Verify the results
-        Assert.areEqual(3, rates.size(), 'Should have 3 exchange rate records');
-        
-        // Check that all rates have the correct fields
-        for (Exchange_Rate__c rate : rates) {
-            Assert.areEqual('USD', rate.Base_Currency__c, 'Base currency should be USD');
-            Assert.areNotEqual(null, rate.Rate__c, 'Rate should not be null');
-            Assert.areNotEqual(null, rate.Last_Updated__c, 'Last updated should not be null');
+        User testUser = [SELECT Id FROM User WHERE Alias = 'testusr'];
+        System.runAs(testUser){
+            List<Exchange_Rate__c> rates = ExchangeRateService.processRates(wrapper);
+            Test.stopTest();
+
+            // Verify the results
+            Assert.areEqual(3, rates.size(), 'Should have 3 exchange rate records');
+            
+            // Check that all rates have the correct fields
+            for (Exchange_Rate__c rate : rates) {
+                Assert.areEqual('USD', rate.Base_Currency__c, 'Base currency should be USD');
+                Assert.areNotEqual(null, rate.Rate__c, 'Rate should not be null');
+                Assert.areNotEqual(null, rate.Last_Updated__c, 'Last updated should not be null');
+            }
+            
+            // Query to verify that records were inserted
+            List<Exchange_Rate__c> insertedRates = [
+                SELECT Id, Base_Currency__c, Target_Currency__c, Rate__c
+                FROM Exchange_Rate__c
+            ];
+            Assert.areEqual(3, insertedRates.size(), 'Should have 3 records in the database');
         }
         
-        // Query to verify that records were inserted
-        List<Exchange_Rate__c> insertedRates = [
-            SELECT Id, Base_Currency__c, Target_Currency__c, Rate__c
-            FROM Exchange_Rate__c
-        ];
-        Assert.areEqual(3, insertedRates.size(), 'Should have 3 records in the database');
     }
     
     /**
@@ -91,28 +111,31 @@ private class ExchangeRateServiceTest {
      */
     @isTest
     static void testProcessRatesException() {
-        try{
-            // Process the rates
-            Test.startTest();
-            List<Exchange_Rate__c> rates = ExchangeRateService.processRates(null);
-        }
-        catch(Exception e){
-            List<Custom_Log__c> logs = [
-                SELECT 
-                Id,
-                Log_Level__c,
-                Message__c 
-                FROM Custom_Log__c
-            ];
-            Assert.areEqual(1, logs.size(), 'There should be only one log in the queried list');
+        Test.startTest();
+        User testUser = [SELECT Id FROM User WHERE Alias = 'testusr'];
+        System.runAs(testUser){
+            try{
+                // Process the rates
+                List<Exchange_Rate__c> rates = ExchangeRateService.processRates(null);
+            }
+            catch(Exception e){
+                List<Custom_Log__c> logs = [
+                    SELECT 
+                    Id,
+                    Log_Level__c,
+                    Message__c 
+                    FROM Custom_Log__c
+                ];
+                Assert.areEqual(1, logs.size(), 'There should be only one log in the queried list');
 
-            Custom_Log__c log = logs[0];
-            Assert.areEqual('Error', log.Log_Level__c, 'Log Level is not error');
-            Assert.areEqual(e.getMessage(), log.Message__c, 'Log Message is not correct');
-            Assert.areEqual('System.NullPointerException', e.getTypeName(), 'Exception Type is not correct');
-            Test.stopTest();
+                Custom_Log__c log = logs[0];
+                Assert.areEqual('Error', log.Log_Level__c, 'Log Level is not error');
+                Assert.areEqual(e.getMessage(), log.Message__c, 'Log Message is not correct');
+                Assert.areEqual('System.NullPointerException', e.getTypeName(), 'Exception Type is not correct');
+            }
         }
-    }
+        Test.stopTest();
+    }  
     
     /**
      * @description Tests the updateExchangeRates method
@@ -124,17 +147,20 @@ private class ExchangeRateServiceTest {
         
         // Call the method to test
         Test.startTest();
-        List<Exchange_Rate__c> rates = ExchangeRateService.updateExchangeRates('USD');
-        Test.stopTest();
+        User testUser = [SELECT Id FROM User WHERE Alias = 'testusr'];
+        System.runAs(testUser){
+            List<Exchange_Rate__c> rates = ExchangeRateService.updateExchangeRates('USD');
+            Test.stopTest();
+            
+            // Verify the results
+            Assert.areEqual(9, rates.size(), 'Should have 9 exchange rate records');
+            // Query to verify that records were inserted
+            List<Exchange_Rate__c> insertedRates = [
+                SELECT Id, Base_Currency__c, Target_Currency__c, Rate__c
+                FROM Exchange_Rate__c
+            ];
+            Assert.areEqual(9, insertedRates.size(), 'Should have 9 records in the database');
+        }
         
-        // Verify the results
-        Assert.areEqual(9, rates.size(), 'Should have 9 exchange rate records');
-        
-        // Query to verify that records were inserted
-        List<Exchange_Rate__c> insertedRates = [
-            SELECT Id, Base_Currency__c, Target_Currency__c, Rate__c
-            FROM Exchange_Rate__c
-        ];
-        Assert.areEqual(9, insertedRates.size(), 'Should have 9 records in the database');
     }
 }
