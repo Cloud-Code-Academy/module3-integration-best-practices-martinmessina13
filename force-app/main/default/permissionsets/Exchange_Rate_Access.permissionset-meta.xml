@@ -1,24 +1,21 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<PermissionSet xmlns="https://soap.sforce.com/2006/04/metadata">
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Admin access to Exchange Rate object.</description>
     <fieldPermissions>
         <editable>true</editable>
         <field>Exchange_Rate__c.External_Id__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
-    <label>ExchangeRate</label>
+    <label>Exchange Rate Access</label>
     <objectPermissions>
         <allowCreate>true</allowCreate>
         <allowDelete>true</allowDelete>
         <allowEdit>true</allowEdit>
         <allowRead>true</allowRead>
-        <modifyAllRecords>true</modifyAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
         <object>Exchange_Rate__c</object>
-        <viewAllFields>true</viewAllFields>
-        <viewAllRecords>true</viewAllRecords>
+        <viewAllFields>false</viewAllFields>
+        <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
-    <tabSettings>
-        <tab>Exchange_Rate__c</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
 </PermissionSet>
