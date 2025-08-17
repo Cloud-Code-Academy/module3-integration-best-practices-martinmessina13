@@ -1,3 +1,4 @@
+@SuppressWarnings('PMD.MethodNamingConventions')
 /**
  * @description Test class for the ExchangeRateScheduler
  * This will be provided to students to test their scheduler implementation
@@ -14,7 +15,7 @@ private class ExchangeRateSchedulerTest {
         Test.setMock(HttpCalloutMock.class, new ExchangeRateMock());
         
         // Create an instance of the scheduler
-        ExchangeRateScheduler scheduler = new ExchangeRateScheduler();
+        ExchangeRateScheduler scheduler = new ExchangeRateScheduler('USD');
         
         // Call the execute method directly
         Test.startTest();
@@ -38,7 +39,7 @@ private class ExchangeRateSchedulerTest {
         Test.setMock(HttpCalloutMock.class, new ExchangeRateMock(true));
         
         // Create an instance of the scheduler
-        ExchangeRateScheduler scheduler = new ExchangeRateScheduler();
+        ExchangeRateScheduler scheduler = new ExchangeRateScheduler('USD');
         
         // Call the execute method and ensure it handles errors gracefully
         Test.startTest();

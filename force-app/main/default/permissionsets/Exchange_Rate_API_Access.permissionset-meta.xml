@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Access to the Exchange Rate API endpoint.</description>
+    <externalCredentialPrincipalAccesses>
+        <enabled>true</enabled>
+        <externalCredentialPrincipal>ExchangeRate_API_Credentials-Admin</externalCredentialPrincipal>
+    </externalCredentialPrincipalAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Exchange Rate API Access</label>
+</PermissionSet>

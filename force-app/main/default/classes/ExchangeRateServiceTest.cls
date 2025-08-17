@@ -1,3 +1,4 @@
+@SuppressWarnings('PMD.MethodNamingConventions')
 /**
  * @description Test class for the ExchangeRateService
  * This will be provided to students to test their implementation
@@ -16,7 +17,7 @@ private class ExchangeRateServiceTest {
         
         // Call the method to test
         Test.startTest();
-        ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates();
+        ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates('USD');
         Test.stopTest();
         
         // Verify the result
@@ -37,7 +38,7 @@ private class ExchangeRateServiceTest {
         // Call the method to test and expect an exception
         Test.startTest();
         try {
-            ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates();
+            ExchangeRateWrapper wrapper = ExchangeRateService.getLatestRates('USD');
             Assert.fail('Should have thrown an exception');
         } catch (Exception e) {
             Assert.isTrue(e.getMessage().contains('Error'), 'Exception message should mention error');
@@ -86,6 +87,34 @@ private class ExchangeRateServiceTest {
     }
     
     /**
+     * @description Tests the processRates method's exception block
+     */
+    @isTest
+    static void testProcessRatesException() {
+        try{
+            // Process the rates
+            Test.startTest();
+            List<Exchange_Rate__c> rates = ExchangeRateService.processRates(null);
+        }
+        catch(Exception e){
+            List<Custom_Log__c> logs = [
+                SELECT 
+                Id,
+                Log_Level__c,
+                Message__c 
+                FROM Custom_Log__c
+            ];
+            Assert.areEqual(1, logs.size(), 'There should be only one log in the queried list');
+
+            Custom_Log__c log = logs[0];
+            Assert.areEqual('Error', log.Log_Level__c, 'Log Level is not error');
+            Assert.areEqual(e.getMessage(), log.Message__c, 'Log Message is not correct');
+            Assert.areEqual('System.NullPointerException', e.getTypeName(), 'Exception Type is not correct');
+            Test.stopTest();
+        }
+    }
+    
+    /**
      * @description Tests the updateExchangeRates method
      */
     @isTest
@@ -95,7 +124,7 @@ private class ExchangeRateServiceTest {
         
         // Call the method to test
         Test.startTest();
-        List<Exchange_Rate__c> rates = ExchangeRateService.updateExchangeRates();
+        List<Exchange_Rate__c> rates = ExchangeRateService.updateExchangeRates('USD');
         Test.stopTest();
         
         // Verify the results

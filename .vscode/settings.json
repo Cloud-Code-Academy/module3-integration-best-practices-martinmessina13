@@ -6,6 +6,14 @@
   },
   "salesforcedx-vscode-core.show-cli-success-msg": false,
   "salesforce.einsteinForDevelopers.enable": false,
-  "salesforce.einsteinForDevelopers.enableAutocompletions": false
+  "salesforce.einsteinForDevelopers.enableAutocompletions": false,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    ".mule": true
+  }
 }
 

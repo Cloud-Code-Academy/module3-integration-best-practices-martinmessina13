@@ -1,0 +1,47 @@
+<template>
+  <div class="slds-is-relative">
+    <lightning-card title="Currency Exchange Rates">
+      <template lwc:if={data}>
+        <div slot="actions" class="slds-grid">
+          <div
+            class="slds-col slds-align_absolute-center slds-var-p-right_large"
+          >
+            <lightning-combobox
+              name="base"
+              label="Base Currency"
+              placeholder="Choose Base Currency"
+              value={baseCurrency}
+              onchange={handleChange}
+              options={baseOptions}
+            >
+            </lightning-combobox>
+          </div>
+          <div
+            class="slds-col slds-align_absolute-center slds-var-p-top_medium"
+          >
+            <lightning-button
+              label="Next Page"
+              onclick={loadMore}
+            ></lightning-button>
+          </div>
+        </div>
+        <lightning-datatable
+          data={data}
+          columns={columns}
+          key-field="id"
+          hide-checkbox-column
+        ></lightning-datatable>
+        <lightning-spinner
+          size="medium"
+          alternative-text="Loading Rates"
+          lwc:if={isLoading}
+        ></lightning-spinner>
+      </template>
+      <template lwc:else>
+        <div class="slds-text-color_error slds-var-p-horizontal_medium">
+          <p>{errors}</p>
+        </div>
+      </template>
+    </lightning-card>
+  </div>
+</template>
